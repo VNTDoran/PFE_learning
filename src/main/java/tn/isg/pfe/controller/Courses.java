@@ -21,6 +21,7 @@ import tn.isg.pfe.services.OpenAiGenerateQuiz;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class Courses {
@@ -98,10 +99,8 @@ public class Courses {
     }
 
     @GetMapping("/getTraining/{id}")
-    public String getTraining(@PathVariable Long id) {
-        return trainingRepo.findById(id)
-                .map(Object::toString)
-                .orElse("Training not found");
+    public Optional<Training> getTraining(@PathVariable Long id) {
+        return trainingRepo.findById(id);
     }
 
     @GetMapping ("/getChapters/idTrainig/{id}")
@@ -129,26 +128,7 @@ public class Courses {
         try {
             Chapter chapter = chapterRepo.findById(chapId).orElseThrow(() -> new RuntimeException("Chapter not found"));
             System.out.println("Chapter: " + chapter.toString());
-            String prompt = "I am creating a quiz for the chapter \" \n" +
-                    "\n" +
-                    chapter.toString()+
-                    "\n" +
-                    " \". The quiz should include 5 multiple-choice questions, each with 4 possible answers. The correct answer should be included in the list of possible answers. The questions should be related to the content of the chapter, and the answers should be relevant to the topic. \n" +
-                    "\n" +
-                    "the response should be in json format under this stucture : \n" +
-                    "{\n" +
-                    "\"question\":\"....\",\n" +
-                    "\"choises\":[\n" +
-                    "{\n" +
-                    "\"answer\":\"....\",\n" +
-                    "\"status\":\"true\"\n" +
-                    "}\n" +
-                    "]\n" +
-                    "}\n" +
-                    "\n" +
-                    "Can you generate this quiz for me?\n" +
-                    "\n" +
-                    "only the json format";
+            String prompt ="I am creating a quiz for the chapter titled 'Chapter 1: Food preparation', which includes several learning pods: Knife Skills, Cooking Techniques, Recipe Conversions, and Food Presentation. Each pod has detailed content describing essential aspects for professional catering, like various knife cuts (dicing, julienne, chiffonade), cooking methods (sautéing, grilling, baking, braising), the art of scaling recipes, and the principles of aesthetically plating food. The quiz should include 5 multiple-choice questions, each with 4 possible answers related to the chapter's content. Each question's correct answer should be included among the possible answers. The questions should be related to the content of the chapter, and the answers should be relevant to the topic. The response should be in JSON format under this structure: {\"question\": \"...\", \"choices\": [{\"answer\": \"...\", \"status\": \"true\"}]}. Can you generate this quiz for me? The return response will be only JSON, no extra text.";
 
             List<String> response = OpenAiGenerateQuiz.extractContent(prompt);
             for (String question : response) {

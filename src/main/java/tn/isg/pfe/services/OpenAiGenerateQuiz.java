@@ -28,10 +28,10 @@ public class OpenAiGenerateQuiz {
                 "    \"messages\": [\n" +
                 "        {\n" +
                 "            \"role\": \"system\",\n" +
-                "            \"content\": \"" + prompt + "\"\n" +
+                "            \"content\": \""+prompt+"\"\n" +
                 "        }\n" +
                 "    ]\n" +
-                "}";
+                "}\n";
 
         System.out.println(requestBodyJson);
 
