@@ -6,15 +6,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import tn.isg.pfe.entities.Chapter;
-import tn.isg.pfe.entities.FormFormationGenerationDTO;
-import tn.isg.pfe.entities.Pod;
-import tn.isg.pfe.entities.Training;
-import tn.isg.pfe.repository.ChapterRepo;
-import tn.isg.pfe.repository.PodRepo;
-import tn.isg.pfe.repository.TrainingRepo;
+import tn.isg.pfe.entities.*;
+import tn.isg.pfe.repository.*;
 import tn.isg.pfe.services.OpenAiGenerateCourse;
 import tn.isg.pfe.services.OpenAiGenerateQuiz;
+import tn.isg.pfe.services.QuizService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,6 +26,13 @@ public class Courses {
     @Autowired PodRepo podRepo;
     @Autowired
     OpenAiGenerateQuiz OpenAiGenerateQuiz;
+    @Autowired
+    QuizService quizService;
+    @Autowired
+    QuizRepo quizRepo;
+    @Autowired
+    AnswerRepo answerRepo;
+    @Autowired QuestionRepo questionRepo;
 
 
     @PostMapping("/generateCourse")
@@ -120,25 +123,53 @@ public class Courses {
                 .orElse("Chapter not found");
     }
 
-    @GetMapping("/generateQuiz/chapId/{chapId}")
-    public void generateQuiz(@PathVariable Long chapId) {
+    @GetMapping("/generateQuiz/trainig/{trainigId}")
+    public void generateQuizByTrainig(@PathVariable Long trainigId) {
+        Training training = trainingRepo.findById(trainigId).orElseThrow(() -> new RuntimeException("Training not found"));
+        for (Chapter chapter : training.getChapters()) {
+            generateQuiz(chapter.getId(), trainigId);
+        }
+    }
+
+    public String generateQuiz(Long chapId, Long trainigId) {
+        Chapter chapter = chapterRepo.findById(chapId).orElseThrow(() -> new RuntimeException("Chapter not found"));
+        String prompt = chapter.toString();
         try {
-            Chapter chapter = chapterRepo.findById(chapId).orElseThrow(() -> new RuntimeException("Chapter not found"));
-            System.out.println("Chapter: " + chapter.toString());
-            String prompt ="I am creating a quiz for the chapter titled 'Chapter 1: Food preparation', which includes several learning pods: Knife Skills, Cooking Techniques, Recipe Conversions, and Food Presentation. Each pod has detailed content describing essential aspects for professional catering, like various knife cuts (dicing, julienne, chiffonade), cooking methods (sautéing, grilling, baking, braising), the art of scaling recipes, and the principles of aesthetically plating food. The quiz should include 5 multiple-choice questions, each with 4 possible answers related to the chapter's content. Each question's correct answer should be included among the possible answers. The questions should be related to the content of the chapter, and the answers should be relevant to the topic. The response should be in JSON format under this structure: {\"question\": \"...\", \"choices\": [{\"answer\": \"...\", \"status\": \"true\"}]}. Can you generate this quiz for me? The return response will be only JSON, no extra text.";
+            String response = OpenAiGenerateQuiz.extractContent(prompt);
+            System.out.println(response);
+            System.out.println("Quiz parsed successfully \n" + quizService.parseQuiz(response));
+            Quiz quiz = quizService.parseQuiz(response);
 
-            List<String> response = OpenAiGenerateQuiz.extractContent(prompt);
-            for (String question : response) {
-                System.out.println(question);
+            Quiz quiz1 = new Quiz();
+            for (Question question : quiz.getQuestions()) {
+                Question question1 = new Question();
+                question1.setQuestion(question.getQuestion());
+                for (Answer answer : question.getChoices()) {
+                    Answer answer1 = new Answer();
+                    answer1.setChoice(answer.getChoice());
+                    answer1.setStatus(answer.isStatus());
+                    answerRepo.save(answer1);
+                    question1.getChoices().add(answer1);
+                }
+                questionRepo.save(question1);
+                quiz1.getQuestions().add(question1);
             }
+            quizRepo.save(quiz1);
+            Training training = trainingRepo.findById(trainigId).orElseThrow(() -> new RuntimeException("Training not found"));
+            training.getQuizs().add(quiz1);
+            trainingRepo.save(training);
 
 
-
+            return response;
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
 
-
+    @GetMapping("/getQuizs/idTraining/{id}")
+    public List<Quiz> getQuizs(@PathVariable Long id) {
+        Training training = trainingRepo.findById(id).orElseThrow(() -> new RuntimeException("Training not found"));
+        return training.getQuizs();
+    }
 
     }

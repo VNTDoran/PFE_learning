@@ -19,6 +19,8 @@ public class Training {
     private String titre;
     @OneToMany
     List<Chapter> chapters;
+    @OneToMany
+    private List<Quiz> quizs=new ArrayList<>();
 
 
 }
