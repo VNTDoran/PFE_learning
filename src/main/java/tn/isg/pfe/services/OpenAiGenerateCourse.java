@@ -24,7 +24,7 @@ public class OpenAiGenerateCourse {
                 .url("https://api.openai.com/v1/chat/completions")
                 .method("POST", body)
                 .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", "Bearer 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")
+                .addHeader("Authorization", "Bearer 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")
                 .build();
         Response response = client.newCall(request).execute();
         return response.body().string();
@@ -33,7 +33,6 @@ public class OpenAiGenerateCourse {
     public static String extractContent(String prompt) throws IOException {
 
         String jsonString = execPromptGpt(prompt);
-
         // Parse the JSON string
         Gson gson = new Gson();
         JsonObject jsonObject = gson.fromJson(jsonString, JsonObject.class);

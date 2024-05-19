@@ -5,9 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import tn.isg.pfe.entities.Chapter;
 import tn.isg.pfe.entities.FormFormationGenerationDTO;
 import tn.isg.pfe.entities.Pod;
@@ -34,18 +32,12 @@ public class Courses {
     OpenAiGenerateQuiz OpenAiGenerateQuiz;
 
 
-    @GetMapping("/generateCourse")
-    public void generateCourse() {
+    @PostMapping("/generateCourse")
+    public void generateCourse(@RequestBody FormFormationGenerationDTO courseRequest) {
         try {
-            FormFormationGenerationDTO dto = new FormFormationGenerationDTO();
-            dto.setTitre("CAP - Production et service en restaurations");
-            dto.setCodeCrnp("RNCP4551");
-            dto.setDomaine_de_formation("production and service in various types of catering, including fast food, collective catering, and cafeterias");
-            dto.setCompetance_developpe("Food preparation, Inventory and supply management, Customer service, Production management, Teamwork, Adaptability, Knowledge of products and menus, Maintenance and cleaning");
-            dto.setPublic_cible("students");
 
-            String prompt = "I am creating an online training course to prepare candidates for obtaining the " + dto.getTitre() + " (training code: " + dto.getCodeCrnp() + "). This training aims to develop skills related to the professional qualification in " + dto.getDomaine_de_formation() + ", specifically in the areas of " + dto.getCompetance_developpe() + ". It targets an audience of " + dto.getPublic_cible() + " and will be delivered in the form of text. Now that I have all the information on the title " + dto.getCodeCrnp() + ", I need your help as an educational engineering expert to develop the structure of the course. A course is made up of several training courses, a training course includes several chapters, and each chapter is made up of several capsules, each pod aims to develop a specific skill through paragraphs and definitions and examples. I now want to generate content for each pod, including explanatory paragraphs, definitions, and relevant examples. Can you generate this content based on the structure as follows: 5 chapters, each chapter having 4 capsules without introduction and conclusion and generating the suggested content, the returned answer should be in a json format following the below example: { \\\"chapters\\\": [ { \\\"chapter\\\": \\\"TITLE\\\", \\\"pods\\\": [ { \\\"podtitle\\\": \\\"title\\\", \\\"content\\\": \\\"pod content\\\" }, { \\\"podtitle\\\": \\\"title\\\", \\\"content\\\": \\\"pod content\\\" }, { \\\"podtitle\\\": \\\"title\\\", \\\"content\\\": \\\"pod content\\\" } ] }, { \\\"chapter\\\": \\\"TITLE\\\", \\\"pods\\\": [ { \\\"podtitle\\\": \\\"title\\\", \\\"content\\\": \\\"pod content\\\" }, { \\\"podtitle\\\": \\\"title\\\", \\\"content\\\": \\\"pod content\\\" }, { \\\"podtitle\\\": \\\"title\\\", \\\"content\\\": \\\"pod content\\\" } ] } ] } I only provided 2 examples in the json object but you need to always generate 5 chapters.";
-
+            String prompt = "I am creating an online training course to prepare candidates for obtaining the " + courseRequest.getTitle() + " (training code: " + courseRequest.getCrnp() + "). This training aims to develop skills related to the professional qualification in " + courseRequest.getDomain() + ", specifically in the areas of " + courseRequest.getCompetencies() + ". It targets an audience of " + courseRequest.getAudience() + " and will be delivered in the form of text. Now that I have all the information on the title " + courseRequest.getCrnp() + ", I need your help as an educational engineering expert to develop the structure of the course. A course is made up of several training courses, a training course includes several chapters, and each chapter is made up of several capsules, each pod aims to develop a specific skill through paragraphs and definitions and examples. I now want to generate content for each pod, including explanatory paragraphs, definitions, and relevant examples. Can you generate this content based on the structure as follows: 5 chapters, each chapter having 4 capsules without introduction and conclusion and generating the suggested content, the returned answer should be in a json format following the below example: { \\\"chapters\\\": [ { \\\"chapter\\\": \\\"TITLE\\\", \\\"pods\\\": [ { \\\"podtitle\\\": \\\"title\\\", \\\"content\\\": \\\"pod content\\\" }, { \\\"podtitle\\\": \\\"title\\\", \\\"content\\\": \\\"pod content\\\" }, { \\\"podtitle\\\": \\\"title\\\", \\\"content\\\": \\\"pod content\\\" } ] }, { \\\"chapter\\\": \\\"TITLE\\\", \\\"pods\\\": [ { \\\"podtitle\\\": \\\"title\\\", \\\"content\\\": \\\"pod content\\\" }, { \\\"podtitle\\\": \\\"title\\\", \\\"content\\\": \\\"pod content\\\" }, { \\\"podtitle\\\": \\\"title\\\", \\\"content\\\": \\\"pod content\\\" } ] } ] } I only provided 2 examples in the json object but you need to always generate 5 chapters.";
+            System.out.println(courseRequest);
 
             String response = OpenAiGenerateCourse.extractContent(prompt);
 
@@ -54,7 +46,7 @@ public class Courses {
 
             JsonArray chaptersArray = jsonObject.getAsJsonArray("chapters");
             Training training = new Training();
-            training.setTitre("CAP - Production et service en restaurations");
+            training.setTitre(courseRequest.getTitle());
             ArrayList<Chapter> chapters = new ArrayList<>();
 
             // Iterate over the chapters array
@@ -101,6 +93,11 @@ public class Courses {
     @GetMapping("/getTraining/{id}")
     public Optional<Training> getTraining(@PathVariable Long id) {
         return trainingRepo.findById(id);
+    }
+
+    @DeleteMapping("/deleteTraining/{id}")
+    public void deleteTraining(@PathVariable Long id) {
+         trainingRepo.deleteById(id);
     }
 
     @GetMapping ("/getChapters/idTrainig/{id}")

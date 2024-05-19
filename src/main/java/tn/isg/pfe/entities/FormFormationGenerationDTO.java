@@ -11,9 +11,9 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString
 public class FormFormationGenerationDTO {
-    private String titre;
-    private String codeCrnp;
-    private String domaine_de_formation;
-    private String competance_developpe;
-    private String public_cible;
+    private String title;
+    private String crnp;
+    private String domain;
+    private String competencies;
+    private String audience;
 }
