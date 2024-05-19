@@ -14,6 +14,7 @@ public class Pod {
     @Id
     private Long id;
     private String title;
-    @Column(length = 1000)
+    @Lob
+    @Column(length = 100000)
     private String content;
 }
