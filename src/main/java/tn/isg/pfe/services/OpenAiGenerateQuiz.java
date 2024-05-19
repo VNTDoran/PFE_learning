@@ -44,7 +44,7 @@ public class OpenAiGenerateQuiz {
                 .url("https://api.openai.com/v1/chat/completions")
                 .method("POST", body)
                 .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", "Bearer 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")
+                .addHeader("Authorization", "Bearer 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")
                 .build();
         Response response = client.newCall(request).execute();
         return response.body().string();

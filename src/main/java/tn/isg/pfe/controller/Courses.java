@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tn.isg.pfe.entities.*;
 import tn.isg.pfe.repository.*;
@@ -126,12 +127,14 @@ public class Courses {
     @GetMapping("/generateQuiz/trainig/{trainigId}")
     public void generateQuizByTrainig(@PathVariable Long trainigId) {
         Training training = trainingRepo.findById(trainigId).orElseThrow(() -> new RuntimeException("Training not found"));
-        for (Chapter chapter : training.getChapters()) {
-            generateQuiz(chapter.getId(), trainigId);
+        System.out.println("test ///////////////////////////// "+training.getChapters().size());
+        for (int i =0;i<training.getChapters().size();i++){
+            System.out.println(i+" ****//*/**/ "+training.getChapters().get(i).getId());
+            generateQuiz(training.getChapters().get(i).getId(), trainigId);
         }
     }
 
-    public String generateQuiz(Long chapId, Long trainigId) {
+    public void generateQuiz(Long chapId, Long trainigId) {
         Chapter chapter = chapterRepo.findById(chapId).orElseThrow(() -> new RuntimeException("Chapter not found"));
         String prompt = chapter.toString();
         try {
@@ -160,16 +163,16 @@ public class Courses {
             trainingRepo.save(training);
 
 
-            return response;
+           // return response;
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
 
     @GetMapping("/getQuizs/idTraining/{id}")
-    public List<Quiz> getQuizs(@PathVariable Long id) {
+    public ResponseEntity<List<Quiz>> getQuizs(@PathVariable Long id) {
         Training training = trainingRepo.findById(id).orElseThrow(() -> new RuntimeException("Training not found"));
-        return training.getQuizs();
+        return ResponseEntity.ok(training.getQuizs());
     }
 
     }
