@@ -97,6 +97,13 @@ public class Courses {
         return trainingRepo.findAll();
     }
 
+    @GetMapping("/getTraining/{id}")
+    public String getTraining(@PathVariable Long id) {
+        return trainingRepo.findById(id)
+                .map(Object::toString)
+                .orElse("Training not found");
+    }
+
     @GetMapping ("/getChapters/idTrainig/{id}")
     public List<Chapter> getChapters(@PathVariable Long id) {
         Training training = trainingRepo.findById(id).orElseThrow(() -> new RuntimeException("Training not found"));
