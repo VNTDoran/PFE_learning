@@ -1,4 +1,4 @@
-package pi.tn.esprit.payload.response;
+package tn.isg.pfe.entities;
 
 public class MessageResponse {
   private String message;

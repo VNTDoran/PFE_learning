@@ -24,7 +24,7 @@ public class OpenAiGenerateCourse {
                 .url("https://api.openai.com/v1/chat/completions")
                 .method("POST", body)
                 .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", "Bearer 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")
+                .addHeader("Authorization", "Bearer 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")
                 .build();
         Response response = client.newCall(request).execute();
         return response.body().string();
