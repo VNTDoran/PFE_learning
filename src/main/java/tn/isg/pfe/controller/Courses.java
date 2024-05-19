@@ -92,6 +92,11 @@ public class Courses {
         }
     }
 
+    @GetMapping("/getAllTraining")
+    public List<Training> getAllChapters() {
+        return trainingRepo.findAll();
+    }
+
     @GetMapping("/getChapter/{id}")
     public String getChapter(@PathVariable Long id) {
         return chapterRepo.findById(id)
