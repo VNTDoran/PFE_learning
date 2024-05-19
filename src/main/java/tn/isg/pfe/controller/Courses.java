@@ -97,6 +97,19 @@ public class Courses {
         return trainingRepo.findAll();
     }
 
+    @GetMapping ("/getChapters/idTrainig/{id}")
+    public List<Chapter> getChapters(@PathVariable Long id) {
+        Training training = trainingRepo.findById(id).orElseThrow(() -> new RuntimeException("Training not found"));
+        return training.getChapters();
+    }
+
+    @GetMapping("/getPods/idChapter/{id}")
+    public List<Pod> getPods(@PathVariable Long id) {
+        Chapter chapter = chapterRepo.findById(id).orElseThrow(() -> new RuntimeException("Chapter not found"));
+        return chapter.getPods();
+    }
+
+
     @GetMapping("/getChapter/{id}")
     public String getChapter(@PathVariable Long id) {
         return chapterRepo.findById(id)
