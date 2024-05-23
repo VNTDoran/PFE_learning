@@ -22,5 +22,8 @@ public class Training {
     @OneToMany
     private List<Quiz> quizs=new ArrayList<>();
 
+    @ManyToOne
+    private User user;
+
 
 }

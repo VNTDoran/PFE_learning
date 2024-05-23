@@ -16,4 +16,5 @@ public class FormFormationGenerationDTO {
     private String domain;
     private String competencies;
     private String audience;
+    private String username;
 }

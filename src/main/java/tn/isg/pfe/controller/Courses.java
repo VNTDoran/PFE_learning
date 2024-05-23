@@ -14,6 +14,7 @@ import tn.isg.pfe.services.OpenAiGenerateQuiz;
 import tn.isg.pfe.services.QuizService;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +35,10 @@ public class Courses {
     @Autowired
     AnswerRepo answerRepo;
     @Autowired QuestionRepo questionRepo;
+    @Autowired
+    UserRepo userRepo;
+    @Autowired
+    QuizResultRepo quizResultRepository;
 
 
     @PostMapping("/generateCourse")
@@ -82,16 +87,23 @@ public class Courses {
                 chapterRepo.save(chapter);
                 chapters.add(chapter);
             }
+            System.out.println("/////////////"+courseRequest.getUsername());
+            User user = userRepo.findUserByEmail(courseRequest.getUsername());
             training.setChapters(chapters);
             trainingRepo.save(training);
+            System.out.println(training.getId()+"///////////////////////");
+            user.getTrainingSet().add(training);
+            userRepo.save(user);
+
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    @GetMapping("/getAllTraining")
-    public List<Training> getAllChapters() {
-        return trainingRepo.findAll();
+
+    @GetMapping("/getAllTraining/{email}")
+    public List<Training> getAllTraining(@PathVariable String email) {
+        return userRepo.findUserByEmail(email).getTrainingSet();
     }
 
     @GetMapping("/getTraining/{id}")
@@ -162,8 +174,6 @@ public class Courses {
             training.getQuizs().add(quiz1);
             trainingRepo.save(training);
 
-
-           // return response;
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -173,6 +183,25 @@ public class Courses {
     public ResponseEntity<List<Quiz>> getQuizs(@PathVariable Long id) {
         Training training = trainingRepo.findById(id).orElseThrow(() -> new RuntimeException("Training not found"));
         return ResponseEntity.ok(training.getQuizs());
+    }
+
+
+    @PostMapping("/result")
+    public ResponseEntity<String> saveQuizResult(@RequestBody QuizResultDTO quizResult) {
+        QuizResult quizResult1 = new QuizResult();
+        quizResult1.setDate(LocalDateTime.now());
+        quizResult1.setScore(quizResult.getScore());
+        quizResultRepository.save(quizResult1);
+        User user = userRepo.findUserByEmail(quizResult.getEmail());
+        System.out.println(user.getEmail()+"///////"+user.getPassword());
+        quizResultRepository.save(quizResult1);
+        user.getQuizResults().add(quizResult1);
+        userRepo.save(user);
+        return ResponseEntity.ok("Quiz result saved successfully!");
+    }
+    @GetMapping("/retrieveResults/{email}")
+    public List<QuizResult> saveQuizResult(@PathVariable String email) {
+        return userRepo.findUserByEmail(email).getQuizResults();
     }
 
     }
