@@ -3,13 +3,14 @@ package tn.isg.pfe.controller;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import tn.isg.pfe.entities.MessageResponse;
+import tn.isg.pfe.entities.Role;
 import tn.isg.pfe.entities.User;
 import tn.isg.pfe.entities.UserDTO;
 import tn.isg.pfe.repository.UserRepo;
+
+import java.util.Optional;
 
 @RestController
 
@@ -41,9 +42,25 @@ public class UserController {
         User usr = new User();
         usr.setPassword(signUpRequest.getPassword());
         usr.setEmail(signUpRequest.getEmail());
+        usr.setRole(Role.ROLE_USER);
         userRepo.save(usr);
         return ResponseEntity.ok(new MessageResponse("ok"));
     }
+
+    @GetMapping("/getUserByEmail/{email}")
+    public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
+        Optional<User> userOptional = userRepo.findByEmail(email);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+
+
+            return ResponseEntity.ok().body(user);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 
 
 }

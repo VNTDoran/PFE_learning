@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tn.isg.pfe.entities.*;
 import tn.isg.pfe.repository.*;
+import tn.isg.pfe.services.OpenAiGenerateAssignment;
 import tn.isg.pfe.services.OpenAiGenerateCourse;
 import tn.isg.pfe.services.OpenAiGenerateQuiz;
 import tn.isg.pfe.services.QuizService;
@@ -39,6 +40,8 @@ public class Courses {
     UserRepo userRepo;
     @Autowired
     QuizResultRepo quizResultRepository;
+    @Autowired
+    AssignmentRepo assignmentRepo;
 
 
     @PostMapping("/generateCourse")
@@ -136,6 +139,7 @@ public class Courses {
                 .orElse("Chapter not found");
     }
 
+
     @GetMapping("/generateQuiz/trainig/{trainigId}")
     public void generateQuizByTrainig(@PathVariable Long trainigId) {
         Training training = trainingRepo.findById(trainigId).orElseThrow(() -> new RuntimeException("Training not found"));
@@ -178,6 +182,34 @@ public class Courses {
             throw new RuntimeException(ex);
         }
     }
+    @GetMapping("/generateAssignment/trainig/{trainigId}")
+    public void generateAssignmentByTrainig(@PathVariable Long trainigId) {
+        Training training = trainingRepo.findById(trainigId).orElseThrow(() -> new RuntimeException("Training not found"));
+        String chapters ="";
+        for (int i =0;i<training.getChapters().size();i++){
+            System.out.println(i+" ****//*/**/ "+training.getChapters().get(i).getId());
+            chapters+=","+training.getChapters().get(i).getTitle();
+        }
+        generateAssignment(chapters,trainigId);
+    }
+
+    private void generateAssignment(String chapters, Long trainigId) {
+        try {
+            String response = OpenAiGenerateAssignment.extractContent(chapters);
+            Assignment assignment = new Assignment();
+            assignment.setContent(response);
+
+            Training training = trainingRepo.findById(trainigId).orElseThrow(() -> new RuntimeException("Training not found"));
+            assignment.setTraining(training);
+            assignment.setUser(training.getUser());
+            System.out.println(assignment.getUser().getId()+"------ ");
+            assignmentRepo.save(assignment);
+            training.setAssignment(assignment);
+            trainingRepo.save(training);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 
     @GetMapping("/getQuizs/idTraining/{id}")
     public ResponseEntity<List<Quiz>> getQuizs(@PathVariable Long id) {
@@ -185,7 +217,40 @@ public class Courses {
         return ResponseEntity.ok(training.getQuizs());
     }
 
+    @GetMapping("/getAssignment/idTraining/{id}")
+    public ResponseEntity<String> getAssignment(@PathVariable Long id) {
+        Training training = trainingRepo.findById(id).orElseThrow(() -> new RuntimeException("Training not found"));
+        return ResponseEntity.ok(training.getAssignment().getContent());
+    }
 
+    @GetMapping("/getAssignments")
+    public ResponseEntity<List<Assignment>> getAssignments() {
+
+        return ResponseEntity.ok(assignmentRepo.findAllByStatus(State.PENDING));
+    }
+
+    @PutMapping("/acceptAssignment/{id}")
+    public ResponseEntity<String> acceptAssignments(@PathVariable Long id) {
+        Assignment assignment = assignmentRepo.findById(id).get();
+        assignment.setStatus(State.ACCEPTED);
+        assignmentRepo.save(assignment);
+        return ResponseEntity.ok("OK");
+    }
+
+    @PutMapping("/rejectAssignment/{id}")
+    public ResponseEntity<String> rejectAssignments(@PathVariable Long id) {
+
+        Assignment assignment = assignmentRepo.findById(id).get();
+        assignment.setStatus(State.REJECTED);
+        assignmentRepo.save(assignment);
+        return ResponseEntity.ok("OK");
+    }
+
+    @GetMapping("/getAssignmentsByUser/{id}")
+    public ResponseEntity<List<Assignment>> getAssignmentsByUser(@PathVariable Long id) {
+        System.out.println(id);
+        return ResponseEntity.ok(assignmentRepo.findAllByUser_Id(id));
+    }
     @PostMapping("/result")
     public ResponseEntity<String> saveQuizResult(@RequestBody QuizResultDTO quizResult) {
         QuizResult quizResult1 = new QuizResult();

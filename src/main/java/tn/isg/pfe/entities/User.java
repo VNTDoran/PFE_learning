@@ -1,5 +1,6 @@
 package tn.isg.pfe.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -24,12 +25,14 @@ public class User {
     @Size(max = 50)
     @Email
     private String email;
-
+    @Enumerated(EnumType.STRING)
+    private Role role;
     @NotBlank
     @Size(max = 120)
     private String password;
 
     @OneToMany(cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Training> trainingSet;
 
     @OneToMany(cascade = CascadeType.ALL)

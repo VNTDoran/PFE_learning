@@ -1,5 +1,6 @@
 package tn.isg.pfe.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,7 +24,12 @@ public class Training {
     private List<Quiz> quizs=new ArrayList<>();
 
     @ManyToOne
+    @JsonIgnore
     private User user;
+
+    @JsonIgnore
+    @OneToOne
+    private Assignment assignment;
 
 
 }
