@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import tn.isg.pfe.entities.Quiz;
 
@@ -17,7 +18,8 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class OpenAiGenerateQuiz {
-
+    @Value("${api.key}")
+    private static String apiKey;
     public static String execPromptGpt(String prompt) throws IOException {
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .connectTimeout(50, TimeUnit.SECONDS)
@@ -31,7 +33,7 @@ public class OpenAiGenerateQuiz {
                 "    \"messages\": [\n" +
                 "        {\n" +
                 "            \"role\": \"system\",\n" +
-                "            \"content\": \"I am creating a quiz for the chapter "+prompt+". The quiz should include 5 multiple-choice questions, each with 4 possible answers related to the chapter's content. Each question's correct answer should be included among the possible answers. The questions should be related to the content of the chapter, and the answers should be relevant to the topic. The response should be in JSON format under this structure: {\\\"questions\\\":[{\\\"question\\\":\\\"What is the capital of France?\\\",\\\"choices\\\":[{\\\"choice\\\":\\\"Paris\\\",\\\"isCorrect\\\":true},{\\\"choice\\\":\\\"Berlin\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"London\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Rome\\\",\\\"isCorrect\\\":false}]},{\\\"question\\\":\\\"Which planet is known as the Red Planet?\\\",\\\"choices\\\":[{\\\"choice\\\":\\\"Mars\\\",\\\"isCorrect\\\":true},{\\\"choice\\\":\\\"Jupiter\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Venus\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Mercury\\\",\\\"isCorrect\\\":false}]},{\\\"question\\\":\\\"Who wrote the play 'Hamlet'?\\\",\\\"choices\\\":[{\\\"choice\\\":\\\"William Shakespeare\\\",\\\"isCorrect\\\":true},{\\\"choice\\\":\\\"Jane Austen\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Charles Dickens\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Leo Tolstoy\\\",\\\"isCorrect\\\":false}]},{\\\"question\\\":\\\"Which of the following is not a primary color?\\\",\\\"choices\\\":[{\\\"choice\\\":\\\"Green\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Red\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Blue\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Yellow\\\",\\\"isCorrect\\\":true}]},{\\\"question\\\":\\\"What is the chemical symbol for water?\\\",\\\"choices\\\":[{\\\"choice\\\":\\\"H2O\\\",\\\"isCorrect\\\":true},{\\\"choice\\\":\\\"CO2\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"O2\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"CH4\\\",\\\"isCorrect\\\":false}]}]} . Can you generate this quiz for me? The return response will be only JSON, no extra text.\"\n" +
+                "            \"content\": \"I am creating a quiz for the chapter "+prompt+". The quiz should include 5 multiple-choice questions, each with 4 possible answers related to the chapter's content. Each question's correct answer should be included among the possible answers. The questions should be related to the content of the chapter, and the answers should be relevant to the topic. The response should be in JSON format under this structure: {\\\"questions\\\":[{\\\"question\\\":\\\"What is the capital of France?\\\",\\\"choices\\\":[{\\\"choice\\\":\\\"Paris\\\",\\\"isCorrect\\\":true},{\\\"choice\\\":\\\"Berlin\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"London\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Rome\\\",\\\"isCorrect\\\":false}]},{\\\"question\\\":\\\"Which planet is known as the Red Planet?\\\",\\\"choices\\\":[{\\\"choice\\\":\\\"Mars\\\",\\\"isCorrect\\\":true},{\\\"choice\\\":\\\"Jupiter\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Venus\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Mercury\\\",\\\"isCorrect\\\":false}]},{\\\"question\\\":\\\"Who wrote the play 'Hamlet'?\\\",\\\"choices\\\":[{\\\"choice\\\":\\\"William Shakespeare\\\",\\\"isCorrect\\\":true},{\\\"choice\\\":\\\"Jane Austen\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Charles Dickens\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Leo Tolstoy\\\",\\\"isCorrect\\\":false}]},{\\\"question\\\":\\\"Which of the following is not a primary color?\\\",\\\"choices\\\":[{\\\"choice\\\":\\\"Green\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Red\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Blue\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"Yellow\\\",\\\"isCorrect\\\":true}]},{\\\"question\\\":\\\"What is the chemical symbol for water?\\\",\\\"choices\\\":[{\\\"choice\\\":\\\"H2O\\\",\\\"isCorrect\\\":true},{\\\"choice\\\":\\\"CO2\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"O2\\\",\\\"isCorrect\\\":false},{\\\"choice\\\":\\\"CH4\\\",\\\"isCorrect\\\":false}]}]} . Can you generate this quiz for me? The return response will be only JSON, no extra text. dont show anything else no sure here's a quiz based on the content or anything only the json response\"\n" +
                 "        }\n" +
                 "    ]\n" +
                 "}\n";
@@ -44,7 +46,7 @@ public class OpenAiGenerateQuiz {
                 .url("https://api.openai.com/v1/chat/completions")
                 .method("POST", body)
                 .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", "Bearer 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")
+                .addHeader("Authorization", "Bearer "+apiKey)
                 .build();
         Response response = client.newCall(request).execute();
         return response.body().string();

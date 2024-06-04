@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import okhttp3.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -11,7 +12,8 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class OpenAiGenerateCourse {
-
+    @Value("${api.key}")
+    private static String apiKey;
     public static String execPromptGpt(String prompt) throws IOException {
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .connectTimeout(50, TimeUnit.SECONDS)
@@ -24,7 +26,7 @@ public class OpenAiGenerateCourse {
                 .url("https://api.openai.com/v1/chat/completions")
                 .method("POST", body)
                 .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", "Bearer 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")
+                .addHeader("Authorization", "Bearer "+apiKey)
                 .build();
         Response response = client.newCall(request).execute();
         return response.body().string();

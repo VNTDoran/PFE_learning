@@ -1,7 +1,6 @@
 package tn.isg.pfe.services;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import okhttp3.*;
@@ -9,12 +8,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class OpenAiGenerateAssignment {
+public class OpenAiCheckResponse {
     @Value("${api.key}")
     private static String apiKey;
     public static String execPromptGpt(String prompt) throws IOException {
@@ -31,11 +28,11 @@ public class OpenAiGenerateAssignment {
                 "        {\n" +
                 "            \"role\": \"system\",\n" +
                 "            \"content\": \"I am creating an assignment for the combined chapters : "+prompt+". The assignment should be a paragraph related to the chapter's content. The response should be in JSON format under this structure: {"+
-        "\\\"assignment\\\": \\\"make an essay where you summarize what you learned\\\" "+
-    "} . Can you generate this assignment for me? The return response will be only JSON, no extra text.\"\n" +
-            "        }\n" +
-            "    ]\n" +
-            "}\n";
+                "\\\"assignment\\\": \\\"make an essay where you summarize what you learned\\\" "+
+                "} . Can you generate this assignment for me? The return response will be only JSON, no extra text.\"\n" +
+                "        }\n" +
+                "    ]\n" +
+                "}\n";
 
         System.out.println(requestBodyJson);
 
@@ -69,6 +66,5 @@ public class OpenAiGenerateAssignment {
         return assignmentValue;
 
     }
-
 
 }

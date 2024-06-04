@@ -93,10 +93,14 @@ public class Courses {
             System.out.println("/////////////"+courseRequest.getUsername());
             User user = userRepo.findUserByEmail(courseRequest.getUsername());
             training.setChapters(chapters);
+            training.setUser(user);
             trainingRepo.save(training);
+
             System.out.println(training.getId()+"///////////////////////");
             user.getTrainingSet().add(training);
             userRepo.save(user);
+            generateQuizByTrainig(training.getId());
+            generateAssignmentByTrainig(training.getId());
 
         } catch (IOException ex) {
             throw new RuntimeException(ex);
