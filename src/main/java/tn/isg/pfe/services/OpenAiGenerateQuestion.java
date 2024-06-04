@@ -9,25 +9,23 @@ import org.springframework.beans.factory.annotation.Value;
 import tn.isg.pfe.entities.Chapter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class OpenAiCheckResponse {
+public class OpenAiGenerateQuestion {
 
     private static String apiKey;
 
     @Value("${api.key}")
     public void setApiKey(String apiKey) {
-        OpenAiCheckResponse.apiKey = apiKey;
+        OpenAiGenerateQuestion.apiKey = apiKey;
     }
 
     public static String getApiKey() {
         return apiKey;
     }
-    public static String execPromptGpt(String question , String answer , Chapter chapter) throws IOException {
+    public static String execPromptGpt(Optional<Chapter> chapter) throws IOException {
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .connectTimeout(50, TimeUnit.SECONDS)
                 .readTimeout(50, TimeUnit.SECONDS)
@@ -40,7 +38,7 @@ public class OpenAiCheckResponse {
                 "    \"messages\": [\n" +
                 "        {\n" +
                 "            \"role\": \"system\",\n" +
-                "            \"content\": \"I am giving you this question : ["+question+"] and this is the answer : ["+answer+"]. The answer of question should be related to the chapter's content : "+chapter+". your role is to check if the answer is true or close to the desire answer by giving a percentage for answer.The response should be in JSON format under this structure: {"+
+                "            \"content\": \" generate me 7 questions on this Chapter topic : "+chapter+
                 "} . The return response will be only JSON, no extra text.\"\n" +
                 "        }\n" +
                 "    ]\n" +
@@ -60,10 +58,10 @@ public class OpenAiCheckResponse {
         return response.body().string();
     }
 
-    public static String extractContent(String question , String answer , Chapter chapter) throws IOException {
+    public static String extractContent(Optional<Chapter> chapter) throws IOException {
 
         // Execute the GPT prompt and get the JSON string response
-        String jsonString = execPromptGpt(question, answer, chapter);
+        String jsonString = execPromptGpt(chapter);
         Gson gson = new Gson();
         System.out.println("jsonString ////////////////////////////" + jsonString);
 
@@ -71,8 +69,12 @@ public class OpenAiCheckResponse {
         JsonObject rootObject = gson.fromJson(jsonString, JsonObject.class);
         JsonObject messageObject = rootObject.getAsJsonArray("choices").get(0).getAsJsonObject().getAsJsonObject("message");
         String contentString = messageObject.get("content").getAsString();
+        /*JsonObject contentJson = JsonParser.parseString(contentString).getAsJsonObject();
+        String assignmentValue = contentJson.get("assignment").getAsString();*/
 
         return contentString;
 
     }
+
+
 }
