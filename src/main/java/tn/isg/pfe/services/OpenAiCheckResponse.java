@@ -42,7 +42,7 @@ public class OpenAiCheckResponse {
                 .url("https://api.openai.com/v1/chat/completions")
                 .method("POST", body)
                 .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", "Bearer "+apiKey)
+                .addHeader("Authorization", "Bearer ")
                 .build();
         Response response = client.newCall(request).execute();
         return response.body().string();

@@ -31,5 +31,9 @@ public class Training {
     @OneToOne
     private Assignment assignment;
 
+    @JsonIgnore
+    @OneToMany
+    private List<QNAQuestion> qnaQuestions=new ArrayList<>();
+
 
 }

@@ -9,10 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tn.isg.pfe.entities.*;
 import tn.isg.pfe.repository.*;
-import tn.isg.pfe.services.OpenAiGenerateAssignment;
-import tn.isg.pfe.services.OpenAiGenerateCourse;
-import tn.isg.pfe.services.OpenAiGenerateQuiz;
-import tn.isg.pfe.services.QuizService;
+import tn.isg.pfe.services.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -33,6 +30,10 @@ public class Courses {
     QuizService quizService;
     @Autowired
     QuizRepo quizRepo;
+    @Autowired
+    private OpenAiEvaluateQuestion openAiEvaluateAnswer;
+    @Autowired
+    QNAQstRepo qnaQstRepo;
     @Autowired
     AnswerRepo answerRepo;
     @Autowired QuestionRepo questionRepo;
@@ -101,7 +102,7 @@ public class Courses {
             userRepo.save(user);
             generateQuizByTrainig(training.getId());
             generateAssignmentByTrainig(training.getId());
-
+            generateQstByTrainig(training.getId());
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -154,6 +155,27 @@ public class Courses {
         }
     }
 
+    @GetMapping("/generateQst/trainig/{trainigId}")
+    public void generateQstByTrainig(@PathVariable Long trainigId) {
+        Training training = trainingRepo.findById(trainigId).orElseThrow(() -> new RuntimeException("Training not found"));
+        System.out.println("test ///////////////////////////// "+training.getChapters().size());
+        for (int i =0;i<training.getChapters().size();i++){
+            System.out.println(i+" ****//*/**/ "+training.getChapters().get(i).getId());
+            generateQst(training.getChapters().get(i).getId(), trainigId);
+        }
+    }
+
+    @GetMapping("/evaluateAnswer")
+    public ResponseEntity<Double> evaluateAnswer(@RequestParam Long questionId, @RequestParam String answer) {
+        System.out.println(questionId+"--------------"+answer);
+        Question question = questionRepo.findById(questionId).orElseThrow(() -> new RuntimeException("Question not found"));
+        try {
+            double result = openAiEvaluateAnswer.evaluateAnswer(question.getQuestion(), answer);
+            return ResponseEntity.ok(result);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
     public void generateQuiz(Long chapId, Long trainigId) {
         Chapter chapter = chapterRepo.findById(chapId).orElseThrow(() -> new RuntimeException("Chapter not found"));
         String prompt = chapter.toString();
@@ -186,6 +208,32 @@ public class Courses {
             throw new RuntimeException(ex);
         }
     }
+
+    public void generateQst(Long chapId, Long trainingId) {
+        Chapter chapter = chapterRepo.findById(chapId).orElseThrow(() -> new RuntimeException("Chapter not found"));
+        String prompt = chapter.toString();
+        try {
+            String response = OpenAiGenerateQuestions.extractContent(prompt);
+            System.out.println(response);
+
+            List<QNAQuestion> questions = quizService.parseQuestions(response);
+
+            Training training = trainingRepo.findById(trainingId).orElseThrow(() -> new RuntimeException("Training not found"));
+
+            for (QNAQuestion question : questions) {
+                QNAQuestion newQuestion = new QNAQuestion();
+                newQuestion.setContent(question.getContent());
+                qnaQstRepo.save(newQuestion);
+                training.getQnaQuestions().add(newQuestion);
+            }
+
+            trainingRepo.save(training);
+
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     @GetMapping("/generateAssignment/trainig/{trainigId}")
     public void generateAssignmentByTrainig(@PathVariable Long trainigId) {
         Training training = trainingRepo.findById(trainigId).orElseThrow(() -> new RuntimeException("Training not found"));
@@ -219,6 +267,11 @@ public class Courses {
     public ResponseEntity<List<Quiz>> getQuizs(@PathVariable Long id) {
         Training training = trainingRepo.findById(id).orElseThrow(() -> new RuntimeException("Training not found"));
         return ResponseEntity.ok(training.getQuizs());
+    }
+    @GetMapping("/getQdtss/idTraining/{id}")
+    public ResponseEntity<List<QNAQuestion>> getQsts(@PathVariable Long id) {
+        Training training = trainingRepo.findById(id).orElseThrow(() -> new RuntimeException("Training not found"));
+        return ResponseEntity.ok(training.getQnaQuestions());
     }
 
     @GetMapping("/getAssignment/idTraining/{id}")
